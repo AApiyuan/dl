@@ -26,7 +26,12 @@ class LoginPage extends StatefulWidget {
 
 
 class LoginPageState extends State<LoginPage> {
-
+  ///账号
+  String account = "";
+  ///密码
+  String password = "";
+  static const String registerAccountLength = 'registerAccountLength';
+  static const String registerAccountEmpty = 'registerAccountEmpty';
   final accoutController = TextEditingController();
   final passwordController = TextEditingController();
   loadDataByDio() async {
@@ -36,13 +41,13 @@ class LoginPageState extends State<LoginPage> {
       Response response;
       Dio dio = new Dio()
         ..options = BaseOptions(
-            baseUrl: "https://www.wanandroid.com/",
+            baseUrl: 'https://www.wanandroid.com/',
             connectTimeout: 10000,
             receiveTimeout: 1000 * 60 * 60 * 24,
             responseType: ResponseType.json,
             headers: {"Content-Type": "application/json"});
       response = await dio.get(
-          "/wxarticle/chapters/json");
+          'user/login');
       if (response.statusCode == 200) {
         _result = 'success';
         print(response.data);
@@ -55,17 +60,65 @@ class LoginPageState extends State<LoginPage> {
     }
     setState(() {});
   }
-  bool checkLogin() {
+  loadDataByDi() async {
+    String _result;
+    try {
+      print('登陆中');
+      Response response;
+      Dio dio = new Dio()
+        ..options = BaseOptions(
+            baseUrl: "https://www.wanandroid.com/",
+            connectTimeout: 10000,
+            receiveTimeout: 1000 * 60 * 60 * 24,
+            responseType: ResponseType.json,
+            headers: {"Content-Type": "application/json"});
+      response = await dio.get(
+          'user/register');
+      if (response.statusCode == 200) {
+        _result = 'success';
+        print(response.data);
+      } else {
+        _result = 'error code : ${response.statusCode}';
+        print(_result);
+      }
+    } catch (exception) {
+      print('exc:$exception');
+    }
+    setState(() {});
+  }
+
+  ///当前按钮是否可点击
+  bool changeShowButton(){
+    return account.isNotEmpty &&
+        password.isNotEmpty;
+  }
+
+   checkLogin() {
+    //定义当前按钮是否可点击
     var accout = accoutController.text.trim();
     var password = passwordController.text.trim();
+    ///用户登录
     if (accout.isEmpty || password.isEmpty) {
-      //BotToast.showText(text: '用户名或者密码不能为空| ');
-      //BotToast.showSimpleNotification(title: '提示', subTitle: '用户名或者密码不能为空');
-      return false;
+      BotToast.showText(text: '用户名或者密码不能为空| ');
+      BotToast.showSimpleNotification(title: '提示', subTitle: '用户名或者密码不能为空');
+      return;
     }
-    return true;
-    //界面跳转
-    // Get.toNamed(Routes.home);
+    if (account.isEmpty || account.length < 6) {
+      BotToast.showText(text: '用户名或者密码不能小于6位 ');
+      BotToast.showSimpleNotification(title: '提示', subTitle: '用户名或者密码不能小于6位');
+      return;
+    }
+
+    ///密码：>6位
+    if (password.isEmpty || password.length < 6) {
+      BotToast.showText(text: '用户名或者密码不能小于6位 ');
+      BotToast.showSimpleNotification(title: '提示', subTitle: '用户名或者密码不能小于6位');
+      return;
+    }
+      //页面跳转
+      //Get.offAllNamed(Routes.homePage);
+
+
   }
 
   @override
@@ -105,14 +158,30 @@ class LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 10),
-            ElevatedButton(
-                onPressed: (){
-                  if (
-                  checkLogin()) {
-                    loadDataByDio();
-                  }
-                },
-                child: const Text('登录'))
+            new Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+
+                  ElevatedButton(
+                      onPressed: (){
+                        if (
+                        checkLogin()) {
+                          loadDataByDio();
+                        }
+                      },
+                      child: const Text('登录')),
+                  ElevatedButton(
+                      onPressed: (){
+                        if (
+                        checkLogin()) {
+                          loadDataByDi();
+                        }
+                      },
+                      child: const Text('注册'))
+                ],
+
+            ),
+
           ],
         ),
       ),
