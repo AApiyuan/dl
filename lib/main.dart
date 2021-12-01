@@ -1,16 +1,17 @@
 import 'dart:convert';
-
+import 'lb.dart';
+import 'zc.dart';
+import 'keyboard.dart';
 import 'package:flutter/material.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/services.dart';
-
 import 'package:dio/dio.dart';
 
 void main() {
   //一定要有MaterialApp，Scaffold
-  runApp(new MaterialApp(
+  runApp(MaterialApp(
     title: "input",
-    home: new Scaffold(
+    home: Scaffold(
 
       body: LoginPage(),
     ),
@@ -20,47 +21,16 @@ void main() {
 class LoginPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return new LoginPageState();
+    return LoginPageState();
   }
 }
 
 
 class LoginPageState extends State<LoginPage> {
-  ///账号
-  String account = "";
-  ///密码
-  String password = "";
-  static const String registerAccountLength = 'registerAccountLength';
-  static const String registerAccountEmpty = 'registerAccountEmpty';
+
   final accoutController = TextEditingController();
   final passwordController = TextEditingController();
   loadDataByDio() async {
-    String _result;
-    try {
-      print('登陆中');
-      Response response;
-      Dio dio = new Dio()
-        ..options = BaseOptions(
-            baseUrl: 'https://www.wanandroid.com/',
-            connectTimeout: 10000,
-            receiveTimeout: 1000 * 60 * 60 * 24,
-            responseType: ResponseType.json,
-            headers: {"Content-Type": "application/json"});
-      response = await dio.get(
-          'user/login');
-      if (response.statusCode == 200) {
-        _result = 'success';
-        print(response.data);
-      } else {
-        _result = 'error code : ${response.statusCode}';
-        print(_result);
-      }
-    } catch (exception) {
-      print('exc:$exception');
-    }
-    setState(() {});
-  }
-  loadDataByDi() async {
     String _result;
     try {
       print('登陆中');
@@ -73,7 +43,7 @@ class LoginPageState extends State<LoginPage> {
             responseType: ResponseType.json,
             headers: {"Content-Type": "application/json"});
       response = await dio.get(
-          'user/register');
+          "/wxarticle/chapters/json");
       if (response.statusCode == 200) {
         _result = 'success';
         print(response.data);
@@ -86,39 +56,50 @@ class LoginPageState extends State<LoginPage> {
     }
     setState(() {});
   }
+  String account = "";
+  ///密码
+  String password = "";
 
+  late bool ButtonDisabled;
   ///当前按钮是否可点击
-  bool changeShowButton(){
-    return account.isNotEmpty &&
-        password.isNotEmpty;
-  }
 
-   checkLogin() {
-    //定义当前按钮是否可点击
+  checkLogin() {
     var accout = accoutController.text.trim();
     var password = passwordController.text.trim();
-    ///用户登录
-    if (accout.isEmpty || password.isEmpty) {
-      BotToast.showText(text: '用户名或者密码不能为空| ');
-      BotToast.showSimpleNotification(title: '提示', subTitle: '用户名或者密码不能为空');
-      return;
+    if (accout.length<11) {
+      //print("密码为空");
+      toast("请输入11位账号");
+      return false;
     }
-    if (account.isEmpty || account.length < 6) {
-      BotToast.showText(text: '用户名或者密码不能小于6位 ');
-      BotToast.showSimpleNotification(title: '提示', subTitle: '用户名或者密码不能小于6位');
-      return;
+    if (password.length<6) {
+      //print("密码为空");
+      toast("请输入6位密码");
+      return false;
     }
+    //if()
+    Navigator.push(context,new MaterialPageRoute(builder: (context) => new  ListViewWidget()));
+    return true;
+    //界面跳转
 
-    ///密码：>6位
-    if (password.isEmpty || password.length < 6) {
-      BotToast.showText(text: '用户名或者密码不能小于6位 ');
-      BotToast.showSimpleNotification(title: '提示', subTitle: '用户名或者密码不能小于6位');
-      return;
-    }
-      //页面跳转
-      //Get.offAllNamed(Routes.homePage);
+    // Get.toNamed(Routes.home);
+  }
 
-
+  toast(String msg) {
+    var entry = OverlayEntry(
+        builder: (BuildContext context) => Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            Positioned(
+              child: Row(
+                children: [Container(child: Text(msg, style: const TextStyle(fontSize: 16, color: Colors.black),), color: Colors.black12,)],
+              ),
+              bottom: 100,
+            )
+          ],
+        ));
+    Overlay.of(context)?.insert(entry);
+    Future.delayed(const Duration(milliseconds: 1500))
+        .whenComplete(() => entry.remove());
   }
 
   @override
@@ -135,10 +116,16 @@ class LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
+              // obscureText: true,
+// 是否自动对焦
+              autofocus: false,
               inputFormatters: [
                 WhitelistingTextInputFormatter.digitsOnly, //只允许输入数字
                 LengthLimitingTextInputFormatter(11)
               ],
+              onChanged: (text) => setState(() {
+            account = text;
+              }),
               controller: accoutController,
               decoration: const InputDecoration(
                 hintText: '请输入用户名',
@@ -147,10 +134,16 @@ class LoginPageState extends State<LoginPage> {
             ),
 
             TextField(
+              // obscureText: true,
+// 是否自动对焦
+              autofocus: false,
               inputFormatters: [
                 WhitelistingTextInputFormatter.digitsOnly, //只允许输入数字
                 LengthLimitingTextInputFormatter(11)
               ],
+              onChanged: (text) => setState(() {
+                password = text;
+              }),
               //只允许输入字母 //
               controller: passwordController,
               decoration: const InputDecoration(
@@ -158,30 +151,53 @@ class LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 10),
-            new Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+            Container(
+              width: double.infinity,
+              height: 50,
+              //阻断,直接不让点击
+              child: AbsorbPointer(
+                child: ElevatedButton(
+                  onPressed: (){
+                    //②不用AbsorbPointer
+                   // if(account.isEmpty || password.isEmpty){} else
+                      if(checkLogin()){
+                      KeyboardUtils.hideKeyboard(context);
+                      loadDataByDio();
+                    }
 
-                  ElevatedButton(
-                      onPressed: (){
-                        if (
-                        checkLogin()) {
-                          loadDataByDio();
-                        }
-                      },
-                      child: const Text('登录')),
-                  ElevatedButton(
-                      onPressed: (){
-                        if (
-                        checkLogin()) {
-                          loadDataByDi();
-                        }
-                      },
-                      child: const Text('注册'))
-                ],
+                  },
+                  child: const Text('登录'),
 
+                ),
+                //①账号密码为空的时候不可以点击  absorbing
+                absorbing: account.isEmpty || password.isEmpty,
+              ),
+
+              decoration: BoxDecoration(
+
+                borderRadius: const BorderRadius.all(Radius.circular(30)),
+              ),
             ),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              height: 50,
+                child: ElevatedButton(
+                  onPressed: (){
 
+                      Navigator.push(context,
+                          new MaterialPageRoute(
+                          builder: (context) => new LoginPage2()));
+                  },
+                  child: const Text('注册'),
+
+                ),
+
+              decoration: BoxDecoration(
+
+                borderRadius: const BorderRadius.all(Radius.circular(30)),
+              ),
+            ),
           ],
         ),
       ),
