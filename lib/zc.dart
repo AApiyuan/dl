@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'lb.dart';
+import 'dart:async';
 class LoginPage2 extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -14,12 +15,21 @@ class LoginPage2State extends State<LoginPage2> {
   final accoutController = TextEditingController();
   final passwordController = TextEditingController();
   final password1Controller = TextEditingController();
+
+   bool? passwordVisible = false; //设置初始状态
+
   String account1 = "";
   ///密码
   String password1 = "";
   String password2 = "";
  bool? check = false;
- bool? checkboxSelected = false;
+
+
+  @override
+  void initState() {
+    passwordVisible = false; //设置初始状态
+  }
+  get obscureText => null;
   toast(String msg) {
     var entry = OverlayEntry(
         builder: (BuildContext context) => Stack(
@@ -40,7 +50,7 @@ class LoginPage2State extends State<LoginPage2> {
  checkLogin1(){
    var accout1 = accoutController.text.trim();
    var password1 = passwordController.text.trim();
-   var password2 = passwordController.text.trim();
+   var password2 = password1Controller.text.trim();
    if(accout1.length<11){
      toast("请输入11位账号");
      return false;
@@ -49,6 +59,16 @@ class LoginPage2State extends State<LoginPage2> {
      toast("请输入11位密码");
      return false;
    }
+   //????
+    if(password1!=password2){
+     toast("请输入相同的密码");
+     return false;
+   }
+    //？？？？？
+    if(!check!){
+      toast("请先阅读并同意服务条款");
+      return false;
+    }
    Navigator.push(context,new MaterialPageRoute(builder: (context) => new  ListViewWidget()));
  }
   loadDataByDio1() async {
@@ -103,22 +123,44 @@ class LoginPage2State extends State<LoginPage2> {
                 hintText: '请输入用户名',
                 //helperText: '请输入用户名'--在横线下面
               ),
+
+            ),
+            Row(
+              children: [
+                Expanded(child: TextField(
+                  // obscureText: true,
+// 是否自动对焦
+                  autofocus: false,
+                  inputFormatters: [
+                    WhitelistingTextInputFormatter.digitsOnly, //只允许输入数字
+                    LengthLimitingTextInputFormatter(11)
+                  ],
+                  //只允许输入字母 //
+                  controller: passwordController,
+                  decoration: const InputDecoration(
+                      hintText: '请再次输入密码'
+                  ),
+                ),
+                ),
+                //更改false/true
+                // // 图标显示
+                // suffixIcon:  IconButton(
+                //   icon: Icon(
+                //     //根据passwordVisible状态显示不同的图标
+                //     passwordVisible ? Icons.visibility : Icons.visibility_off,
+                //     color: Theme.of(context).primaryColorDark,
+                //   ),
+                //   onPressed: () {
+                //     //更新状态控制密码显示或隐藏
+                //     setState(() {
+                //       passwordVisible = !passwordVisible;
+                //     });
+                //   },
+                // ),
+
+              ],
             ),
 
-            TextField(
-              // obscureText: true,
-// 是否自动对焦
-              autofocus: false,
-              inputFormatters: [
-                WhitelistingTextInputFormatter.digitsOnly, //只允许输入数字
-                LengthLimitingTextInputFormatter(11)
-              ],
-              //只允许输入字母 //
-              controller: passwordController,
-              decoration: const InputDecoration(
-                  hintText: '请输入密码'
-              ),
-            ),
             TextField(
               // obscureText: true,
 // 是否自动对焦
@@ -139,9 +181,6 @@ class LoginPage2State extends State<LoginPage2> {
              Checkbox(
                     value: check,
                     onChanged: (value){
-                      if(value==true){
-                        checkboxSelected=false;
-                      }
                       check = value;
                       setState((){
                       });

@@ -13,13 +13,14 @@ class ListViewWidget extends StatefulWidget {
 }
 
 class ListViewState extends State<ListViewWidget> {
-
+//定义一个空列表
   List<ItemWidget> list = <ItemWidget>[];
 
   add() {
     print('回调了add()');
     setState(() {
-      sets.add(new Person('战士 ${sets.length + 1}', '我是第${sets.length + 1}个兵'));
+      sets.add(
+          new Person('战士 ${sets.length + 1}', '我是第${sets.length + 1}个兵'));
     });
   }
 
@@ -32,14 +33,17 @@ class ListViewState extends State<ListViewWidget> {
         centerTitle: true,
       ),
       body: new ListView(
+        //map转化为list
         children: sets.map((p) {
           return new ItemWidget(p);
         }).toList(),
       ),
+      //底部添加按钮
       floatingActionButton: new FloatingActionButton(
         onPressed: add,
 //        onPressed: null,
-        tooltip: 'add',
+      //tooltip是提示语
+        //tooltip: 'add',
         child: new Icon(Icons.add),
         backgroundColor: Colors.blue[400],
       ),

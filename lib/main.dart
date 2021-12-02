@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'lb.dart';
+import 'listview.dart';
+
 import 'zc.dart';
 import 'keyboard.dart';
 import 'package:flutter/material.dart';
@@ -77,7 +78,7 @@ class LoginPageState extends State<LoginPage> {
       return false;
     }
     //if()
-    Navigator.push(context,new MaterialPageRoute(builder: (context) => new  ListViewWidget()));
+    Navigator.push(context,new MaterialPageRoute(builder: (context) => new  ListViewPulltoRefresh()));
     return true;
     //界面跳转
 
